@@ -6,6 +6,10 @@ import requests
 from telebot import TeleBot
 from dotenv import load_dotenv
 
+from exceptions import (
+    check_is_dict, check_required_keys, check_homework_structure
+)
+
 
 load_dotenv()
 
@@ -70,35 +74,11 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет корректность структуры ответа API."""
-    # 1. Проверка, что ответ — это словарь.
-    if not isinstance(response, dict):
-        raise TypeError('Ответ API должен быть словарём.')
+    check_is_dict(response)
+    check_required_keys(response)
 
-    # 2. Проверка обязательных ключей и их типов данных.
-    required_keys = (
-        ('current_date', int),
-        ('homeworks', list)
-    )
-    for key, expected_type in required_keys:
-        if key not in response:
-            raise KeyError(f'В ответе отсутствует обязательное поле "{key}".')
-        if not isinstance(response[key], expected_type):
-            raise TypeError(f'Поле "{key}" имеет неверный тип данных.')
-
-    # 3. Проверка структуры нужных элементов в homeworks.
     for homework in response['homeworks']:
-        if not isinstance(homework, dict):
-            raise TypeError('Каждый элемент в homeworks должен быть словарём.')
-
-        for key in ('homework_name', 'status'):
-            if key not in homework:
-                raise KeyError(f'В объекте homework отсутствует ключ "{key}".')
-            if not isinstance(homework[key], str):
-                raise TypeError(f'Элемента "{key}" имеет неверный тип данных.')
-
-        # 4. Проверка допустимых значений статуса.
-        if homework['status'] not in HOMEWORK_VERDICTS:
-            raise ValueError(f'Недопустимый статус: {homework['status']}')
+        check_homework_structure(homework)
 
     return True
 

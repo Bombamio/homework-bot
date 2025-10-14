@@ -113,7 +113,7 @@ def main():
         raise SystemExit('Отсутствуют обязательные переменные окружения!')
 
     # Создаем объект класса бота
-    bot = TeleBot(token=f'{TELEGRAM_TOKEN}')
+    bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     last_message = ''
 

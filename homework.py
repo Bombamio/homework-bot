@@ -60,11 +60,10 @@ def check_tokens():
     }
     missing = [name for name, value in tokens.items() if not value]
     if missing:
-        logging.critical(
-            'Отсутствуют обязательные переменные окружения: '
-            f'{", ".join(missing)}'
-        )
-        raise SystemExit('Отсутствуют обязательные переменные окружения!')
+        error_message = 'Отсутствуют обязательные переменные окружения: '
+        f'{", ".join(missing)}'
+        logging.critical(error_message)
+        raise SystemExit(error_message)
 
 
 @avoid_duplicates
@@ -145,7 +144,7 @@ def parse_status(homework):
     for key in ('homework_name', 'status'):
         if key not in homework:
             errors.append(f'В объекте homework отсутствует ключ "{key}".')
-    if len(errors) != 0:
+    if errors:
         raise KeyError(" ".join(errors),)
 
     homework_name = homework['homework_name']
@@ -188,16 +187,18 @@ def main():
 
             timestamp = response.get('current_date', timestamp)
 
-        except requests.exceptions.RequestException as error:
-            logging.exception(f'Ошибка сети: {error}')
-
-        except apihelper.ApiException as error:
-            logging.exception(f'ОшибкаTelegram API: {error}')
+        except (
+            requests.exceptions.RequestException, apihelper.ApiException
+        ) as error:
+            logging.exception(f'Ошибка сети или ОшибкаTelegram API: {error}')
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.exception(message)
-            with suppress(apihelper.ApiException):
+            with suppress(
+                apihelper.ApiException,
+                requests.exceptions.RequestException
+            ):
                 send_message(bot, message)
 
         finally:
